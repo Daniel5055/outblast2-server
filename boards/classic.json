@@ -1,0 +1,67 @@
+[
+    {
+        "name": "Core",
+        "cx": 500,
+        "cy": 500,
+        "mass": 1000,
+        "radius": 100,
+        "orbitAngle": 0,
+        "orbitClockwise": true,
+        "orbitDistance": 0,
+        "orbitPeriod": 0,
+        "rotationPeriod": 10000,
+        "rotateClockwise": false
+    },
+    {
+        "name": "Body1",
+        "cx": 500,
+        "cy": 500,
+        "mass": 500,
+        "radius": 50,
+        "orbitAngle": 3,
+        "orbitClockwise": false,
+        "orbitDistance": 250,
+        "orbitPeriod": 25000,
+        "rotationPeriod": 5000,
+        "rotateClockwise": false
+    },
+    {
+        "name": "Body2",
+        "cx": 500,
+        "cy": 500,
+        "mass": 500,
+        "radius": 50,
+        "orbitAngle": 0,
+        "orbitClockwise": false,
+        "orbitDistance": 500,
+        "orbitPeriod": 15000,
+        "rotationPeriod": 10000,
+        "rotateClockwise": true
+    },
+    {
+        "name": "Body3",
+        "cx": 500,
+        "cy": 500,
+        "mass": 300,
+        "radius": 40,
+        "orbitAngle": 6.283185307179586,
+        "orbitClockwise": true,
+        "orbitDistance": 390,
+        "orbitPeriod": 12000,
+        "rotationPeriod": 8000,
+        "rotateClockwise": false
+    },
+    {
+        "name": "Body4",
+        "cx": 500,
+        "cy": 500,
+        "mass": 300,
+        "radius": 40,
+        "orbitAngle": 1.5707963267948966,
+        "orbitClockwise": true,
+        "orbitDistance": 400,
+        "orbitPeriod": 12000,
+        "rotationPeriod": 5000,
+        "rotateClockwise": true
+    }
+]

@@ -10,7 +10,7 @@
         "orbitDistance": 0,
         "orbitPeriod": 0,
         "rotationPeriod": 10000,
-        "rotateClockwise": false
+        "rotationClockwise": false
     },
     {
         "name": "Body1",
@@ -23,7 +23,7 @@
         "orbitDistance": 250,
         "orbitPeriod": 25000,
         "rotationPeriod": 5000,
-        "rotateClockwise": false
+        "rotationClockwise": false
     },
     {
         "name": "Body2",
@@ -36,7 +36,7 @@
         "orbitDistance": 500,
         "orbitPeriod": 15000,
         "rotationPeriod": 10000,
-        "rotateClockwise": true
+        "rotationClockwise": true
     },
     {
         "name": "Body3",
@@ -49,7 +49,7 @@
         "orbitDistance": 390,
         "orbitPeriod": 12000,
         "rotationPeriod": 8000,
-        "rotateClockwise": false
+        "rotationClockwise": false
     },
     {
         "name": "Body4",
@@ -62,6 +62,6 @@
         "orbitDistance": 400,
         "orbitPeriod": 12000,
         "rotationPeriod": 5000,
-        "rotateClockwise": true
+        "rotationClockwise": true
     }
 ]

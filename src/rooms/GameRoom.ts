@@ -1,7 +1,7 @@
 import { Room, Client } from '@colyseus/core';
 import { GameRoomState } from './schema/GameRoomState';
 import { readFile } from 'fs/promises';
-import { Body, Player } from './schema/Body';
+import { Body, Orbital, Player } from './schema/Body';
 
 export class MyRoom extends Room<GameRoomState> {
     onCreate(options: any) {
@@ -24,12 +24,12 @@ export class MyRoom extends Room<GameRoomState> {
         console.log(client.sessionId, 'joined!');
 
         const player = new Player();
-        player.name = 'Player';
+        player.name = client.id
         player.radius = Player.playerRadius;
         player.mass = Player.playerMass;
         player.x = 100;
         player.y = 100;
-        player.target = null;
+        player.target = -1;
         player.targetAngle = 0;
         player.cannonAngle = Math.PI / 2;
         player.cannonMovement = 0;
@@ -67,20 +67,145 @@ export class MyRoom extends Room<GameRoomState> {
                 body.rotationAngle;
         }
 
+        for (const orbital of this.state.orbitals) {
+            for (const body of this.state.bodies) {
+                // The angle at which the body is from the orbital
+                const angle =
+                    Math.atan((body.y - orbital.y) / -(body.x - orbital.x)) +
+                    (body.x > orbital.x ? Math.PI : 0);
+
+                // Distance between them squared
+                const rSq = Math.pow(body.x - orbital.x, 2) + Math.pow(body.y - orbital.y, 2);
+
+                // Acceleration due to gravity
+                //const g = 0.01 * body.mass * orbital.mass / rSq
+                const g = ((40 / 100000) * body.mass) / Math.sqrt(rSq);
+
+                orbital.vx += Math.cos(angle + Math.PI) * g * delta
+                orbital.vy += -Math.sin(angle + Math.PI) * g * delta
+            }
+
+            orbital.x += orbital.vx * delta
+            orbital.y += orbital.vy * delta
+        }
+
+        for (const orbital of this.state.orbitals) {
+            // Colliding with orbitals
+            for (const o of this.state.orbitals) {
+                if (o === orbital) continue;
+
+                if (this.doesCollide(orbital, o)) {
+                    this.state.orbitals.splice(this.state.orbitals.indexOf(o), 1);
+                    this.state.orbitals.splice(this.state.orbitals.indexOf(orbital), 1);
+                }
+            }
+
+            // Colliding with bodies
+            for (const [i, body] of this.state.bodies.entries()) {
+                // The angle at which the body is from the orbital
+                if (orbital.ignore !== i && this.doesCollide(orbital, body)) {
+                    // If any players on planet in range
+                    for (const player of body.players) {
+                        const rotAngle = player.targetAngle + body.rotationAngle;
+                        const px = body.x + Math.cos(rotAngle) * body.radius;
+                        const py = body.y - Math.sin(rotAngle) * body.radius;
+                        if (
+                            this.doesCollideCoords(
+                                orbital.x,
+                                orbital.y,
+                                orbital.radius,
+                                px,
+                                py,
+                                player.radius
+                            )
+                        ) {
+                            player.target = -1;
+                        }
+                    }
+                    body.players = body.players.filter((p) => p.target !== -1);
+
+                    if (orbital.type === 'Bullet') {
+                        this.state.orbitals.splice(this.state.orbitals.indexOf(orbital), 1);
+                    } else {
+                        const angle =
+                            Math.atan((body.y - orbital.y) / -(body.x - orbital.x)) +
+                            (body.x > orbital.x ? Math.PI : 0);
+
+                        this.state.orbitals.splice(this.state.orbitals.indexOf(orbital), 1);
+                        const player = orbital as Player
+                        player.targetAngle = (angle - body.rotationAngle) % (2 * Math.PI);
+                        player.vx = 0;
+                        player.vy = 0;
+                        player.x = Math.cos(player.targetAngle) * body.radius;
+                        player.y = -1 * Math.sin(player.targetAngle) * body.radius;
+                        player.cannonAngle = Math.PI / 2;
+                        body.players.push(player);
+                        (orbital as Player).target = i;
+                    }
+                }
+            }
+        }
+
         // Moving players
         for (const player of this.state.players.values()) {
             if (player.inputs.w) {
-                player.y -= 1;
+                if (player.target !== -1) {
+                    const b = this.state.bodies[player.target]
+                    const bId = player.target
+
+                    b.players.splice(b.players.indexOf(player), 1);
+                    this.state.orbitals.push(player)
+
+
+                    const rotAngle = player.targetAngle + b.rotationAngle;
+                    // Calculated new player position
+                    player.x = b.x + Math.cos(rotAngle) * b.radius;
+                    player.y = b.y - Math.sin(rotAngle) * b.radius;
+
+                    // Calculate new speed
+                    player.vx = Math.cos(rotAngle + player.cannonAngle - Math.PI / 2) * 0.06 * 17;
+                    player.vy = -Math.sin(rotAngle + player.cannonAngle - Math.PI / 2) * 0.06 * 17;
+
+                    player.ignore = player.target;
+                    player.target = -1;
+
+                    setTimeout(() => {
+                        if (player.target === -1 && player.ignore === bId) {
+                            player.ignore = -1;
+                        }
+                    }, 100);
+                }
             }
+
+            const cannonMovementTick = 0.05 / 17
+            const cannonEdge = 0.5
+
             if (player.inputs.s) {
-                player.y += 1;
+                // Shoot
             }
             if (player.inputs.a) {
-                player.x -= 1;
+                if (player.cannonAngle < Math.PI - cannonEdge) {
+                    player.cannonAngle += cannonMovementTick * delta;
+                }
             }
             if (player.inputs.d) {
-                player.x += 1;
+                if (player.cannonAngle > cannonEdge) {
+                    player.cannonAngle -= cannonMovementTick * delta;
+                }
             }
         }
+    }
+    doesCollide(a: Orbital, b: Orbital | Body) {
+        return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2)) < a.radius + b.radius;
+    }
+    doesCollideCoords(
+        x1: number,
+        y1: number,
+        r1: number,
+        x2: number,
+        y2: number,
+        r2: number
+    ) {
+        return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2)) < r1 + r2;
     }
 }

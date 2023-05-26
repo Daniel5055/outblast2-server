@@ -11,6 +11,7 @@ export class Orbital extends Schema {
 
     vx: number = 0;
     vy: number = 0;
+    ignore: number;
 }
 
 export class Player extends Orbital {
@@ -23,7 +24,7 @@ export class Player extends Orbital {
     @type('number') cannonHeight: number = 0; //Player.cannonHeight;
 
     // Index to target
-    @type('number') target: number;
+    @type('number') target: number = -1;
     @type('number') targetAngle: number;
     @type('number') cannonAngle: number;
 

@@ -1,4 +1,4 @@
-import { Schema, type, ArraySchema } from '@colyseus/schema';
+import { Schema, type, SetSchema } from '@colyseus/schema';
 
 export class Orbital extends Schema {
     @type('string') name: string;
@@ -20,8 +20,8 @@ export class Player extends Orbital {
     static cannonWidth = 8;
     static cannonHeight = 20;
 
-    @type('number') cannonWidth: number = 0; //Player.cannonWidth;
-    @type('number') cannonHeight: number = 0; //Player.cannonHeight;
+    @type('number') cannonWidth: number = Player.cannonWidth;
+    @type('number') cannonHeight: number = Player.cannonHeight;
 
     // Index to target
     @type('number') target: number = -1;
@@ -31,6 +31,8 @@ export class Player extends Orbital {
     type = 'Player' as 'Player';
 
     cannonMovement: -1 | 0 | 1;
+
+    fired: boolean = false;
 
     inputs: { w: boolean; a: boolean; s: boolean; d: boolean };
 }
@@ -50,7 +52,7 @@ export class Body extends Schema {
     @type('float32') x: number;
     @type('float32') y: number;
     @type('number') rotationAngle: number;
-    @type([Player]) players = new ArraySchema<Player>();
+    @type({ set: Player }) players = new SetSchema<Player>();
 
     // Constant data
     centerX: number;

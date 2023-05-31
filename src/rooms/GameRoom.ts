@@ -1,7 +1,10 @@
 import { Room, Client } from '@colyseus/core';
 import { GameRoomState } from './schema/GameRoomState';
 import { readFile } from 'fs/promises';
-import { Body, Bullet, Orbital, Player } from './schema/Body';
+import { Body } from './schema/Body';
+import { Bullet } from './schema/Bullet';
+import { Player } from './schema/Player';
+import { Orbital } from './schema/Orbital';
 
 export class MyRoom extends Room<GameRoomState> {
     onCreate(options: any) {
@@ -37,7 +40,7 @@ export class MyRoom extends Room<GameRoomState> {
         this.state.players.set(player.name, player);
         this.state.orbitals.set(player.name, player);
 
-        client.send('self', { id: this.state.players.size });
+        //client.send('self', { id: this.state.players.size });
     }
 
     onLeave(client: Client, consented: boolean) {
@@ -87,7 +90,6 @@ export class MyRoom extends Room<GameRoomState> {
 
             orbital.x += orbital.vx * delta;
             orbital.y += orbital.vy * delta;
-            console.log(orbital.x, orbital.y);
         }
 
         for (const orbital of this.state.orbitals.values()) {
@@ -118,7 +120,8 @@ export class MyRoom extends Room<GameRoomState> {
                 if (orbital.ignore !== i && this.doesCollide(orbital, body)) {
                     // If any players on planet in range
                     let deletePlayers = [];
-                    for (const player of body.players.values()) {
+                    for (const playerId of body.players.values()) {
+                        const player = this.state.players.get(playerId);
                         const rotAngle = player.targetAngle + body.rotationAngle;
                         const px = body.x + Math.cos(rotAngle) * body.radius;
                         const py = body.y - Math.sin(rotAngle) * body.radius;
@@ -133,7 +136,7 @@ export class MyRoom extends Room<GameRoomState> {
                             )
                         ) {
                             player.target = -1;
-                            deletePlayers.push(player);
+                            deletePlayers.push(player.name);
                         }
                     }
                     deletePlayers.forEach((p) => body.players.delete(p));
@@ -154,7 +157,7 @@ export class MyRoom extends Room<GameRoomState> {
                         player.x = Math.cos(player.targetAngle) * body.radius;
                         player.y = -1 * Math.sin(player.targetAngle) * body.radius;
                         player.cannonAngle = Math.PI / 2;
-                        body.players.add(player);
+                        body.players.add(player.name);
                         (orbital as Player).target = i;
                     }
                 }
@@ -168,7 +171,7 @@ export class MyRoom extends Room<GameRoomState> {
                     const b = this.state.bodies[player.target];
                     const bId = player.target;
 
-                    b.players.delete(player);
+                    b.players.delete(player.name);
                     this.state.orbitals.set(player.name, player);
 
                     const rotAngle = player.targetAngle + b.rotationAngle;

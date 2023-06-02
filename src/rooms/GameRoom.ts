@@ -167,6 +167,7 @@ export class MyRoom extends Room<GameRoomState> {
         // Moving players
         for (const player of this.state.players.values()) {
             if (player.inputs.w) {
+                player.inputs.w = false
                 if (player.target !== -1) {
                     const b = this.state.bodies[player.target];
                     const bId = player.target;
@@ -197,14 +198,10 @@ export class MyRoom extends Room<GameRoomState> {
             const cannonMovementTick = 0.05 / 17;
             const cannonEdge = 0.5;
 
-            if (!player.inputs.s) {
-                player.fired = false;
-            }
-
-            if (!player.fired && player.inputs.s) {
+            if (player.inputs.s) {
+                player.inputs.s = false;
                 const bId = player.target;
                 if (bId !== -1) {
-                    player.fired = true;
                     const b = this.state.bodies[bId];
                     const rotAngle = player.targetAngle + b.rotationAngle;
                     const bullet = new Bullet();
@@ -212,7 +209,7 @@ export class MyRoom extends Room<GameRoomState> {
                     bullet.y = b.y - Math.sin(rotAngle) * b.radius;
                     bullet.vx = Math.cos(rotAngle + player.cannonAngle - Math.PI / 2) * 0.08 * 17;
                     bullet.vy = -Math.sin(rotAngle + player.cannonAngle - Math.PI / 2) * 0.08 * 17;
-                    bullet.name = 'Bullet';
+                    bullet.name = `Bullet${Bullet.id}`;
                     bullet.mass = 5;
                     bullet.radius = 5;
                     bullet.ignore = player.target;

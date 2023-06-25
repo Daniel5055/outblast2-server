@@ -9,6 +9,7 @@ export class Body extends Schema {
     @type('float32') y: number;
     @type('number') rotationAngle: number;
     @type({ set: 'string' }) players = new SetSchema<string>();
+    @type('number') bulletCount: number;
 
     // Constant data
     centerX: number;
@@ -44,6 +45,7 @@ export class Body extends Schema {
         orbitClockwise: boolean;
         rotationPeriod: number;
         rotationClockwise: boolean;
+        bulletCount: number;
     }) {
         super();
         this.name = data.name;
@@ -63,5 +65,6 @@ export class Body extends Schema {
 
         this.orbitAngle = data.orbitAngle;
         this.rotationAngle = 0;
+        this.bulletCount = data.bulletCount;
     }
 }

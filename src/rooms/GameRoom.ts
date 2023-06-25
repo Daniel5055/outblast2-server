@@ -67,6 +67,7 @@ export class MyRoom extends Room<GameRoomState> {
                     (body.rotationClockwise ? -2 : 2) *
                     Math.PI +
                 body.rotationAngle;
+            body.bulletCount += body.mass * 0.000015;
         }
 
         // Updating movement of orbitals
@@ -167,7 +168,7 @@ export class MyRoom extends Room<GameRoomState> {
         // Moving players
         for (const player of this.state.players.values()) {
             if (player.inputs.w) {
-                player.inputs.w = false
+                player.inputs.w = false;
                 if (player.target !== -1) {
                     const b = this.state.bodies[player.target];
                     const bId = player.target;
@@ -203,25 +204,30 @@ export class MyRoom extends Room<GameRoomState> {
                 const bId = player.target;
                 if (bId !== -1) {
                     const b = this.state.bodies[bId];
-                    const rotAngle = player.targetAngle + b.rotationAngle;
-                    const bullet = new Bullet();
-                    bullet.x = b.x + Math.cos(rotAngle) * b.radius;
-                    bullet.y = b.y - Math.sin(rotAngle) * b.radius;
-                    bullet.vx = Math.cos(rotAngle + player.cannonAngle - Math.PI / 2) * 0.08 * 17;
-                    bullet.vy = -Math.sin(rotAngle + player.cannonAngle - Math.PI / 2) * 0.08 * 17;
-                    bullet.name = `Bullet${Bullet.id}`;
-                    bullet.mass = 5;
-                    bullet.radius = 5;
-                    bullet.ignore = player.target;
+                    if (b.bulletCount >= 1) {
+                        b.bulletCount -= 1;
+                        const rotAngle = player.targetAngle + b.rotationAngle;
+                        const bullet = new Bullet();
+                        bullet.x = b.x + Math.cos(rotAngle) * b.radius;
+                        bullet.y = b.y - Math.sin(rotAngle) * b.radius;
+                        bullet.vx =
+                            Math.cos(rotAngle + player.cannonAngle - Math.PI / 2) * 0.08 * 17;
+                        bullet.vy =
+                            -Math.sin(rotAngle + player.cannonAngle - Math.PI / 2) * 0.08 * 17;
+                        bullet.name = `Bullet${Bullet.id}`;
+                        bullet.mass = 5;
+                        bullet.radius = 5;
+                        bullet.ignore = player.target;
 
-                    this.state.orbitals.set(bullet.name, bullet);
-                    this.state.bullets.set(bullet.name, bullet);
+                        this.state.orbitals.set(bullet.name, bullet);
+                        this.state.bullets.set(bullet.name, bullet);
 
-                    setTimeout(() => {
-                        if (bullet.ignore === bId) {
-                            bullet.ignore = undefined;
-                        }
-                    }, 100);
+                        setTimeout(() => {
+                            if (bullet.ignore === bId) {
+                                bullet.ignore = undefined;
+                            }
+                        }, 100);
+                    }
                 }
             }
             if (player.inputs.a) {
